@@ -45,7 +45,7 @@ const GeneratingStatus = ({ prompt, modelName = 'GPT-4-All', onRetry = null }) =
   const extractKeyPoints = (promptText) => {
     // 簡單的實現：按行分割，並過濾掉空行
     const lines = promptText.split('\n').filter(line => line.trim());
-    
+
     // 只返回前3行作為關鍵點
     return lines.slice(0, 3).map(line => {
       // 如果行太長，截斷它
@@ -64,15 +64,28 @@ const GeneratingStatus = ({ prompt, modelName = 'GPT-4-All', onRetry = null }) =
 
   return (
     <div className="generating-status">
-      <h2>生成的圖像</h2>
-      
+      <h2>🎨 圖像生成中</h2>
+
       <div className="generating-container">
         <div className="generating-animation">
           <div className="spinner"></div>
           <div className="generating-text">AI繪圖啟動中{dots}</div>
           <div className="model-info">使用模型: {modelName}</div>
         </div>
-        
+
+        <div className="progress-bar-container">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${Math.min(elapsedTime / 90 * 100, 100)}%`,
+                backgroundColor: elapsedTime > 60 ? '#ff9800' : '#4a90e2'
+              }}
+            ></div>
+          </div>
+          <p className="elapsed-time">已經過：{formatTime(elapsedTime)}</p>
+        </div>
+
         <div className="prompt-summary">
           <h3>使用的提示詞</h3>
           <ul>
@@ -80,22 +93,28 @@ const GeneratingStatus = ({ prompt, modelName = 'GPT-4-All', onRetry = null }) =
               <li key={index}>- {point}</li>
             ))}
           </ul>
+          <div className="prompt-badge">完整提示詞將在圖像生成後顯示</div>
         </div>
-        
+
         <div className="generating-info">
           <p className="time-info">* 【AI繪圖啟動 | 生成時間約1~2分鐘】 *</p>
-          <p className="elapsed-time">已經過：{formatTime(elapsedTime)}</p>
-          <p className="status-message">
-            請稍候～ 系統生成中，完成後會直接顯示在這裡！
-            <br />
-            (溫馨提示：若未來想微調，隨時可以追加細節，例如「改成夜晚櫻花+提燈氛圍」 ✨)
-          </p>
-          
+          <div className="status-message">
+            <p>請稍候～ 系統生成中，完成後圖像將直接顯示在這裡！</p>
+            <p className="tips">
+              <span className="tips-icon">💡</span> 溫馨提示：生成完成後，您可以：
+              <ul>
+                <li>查看高清原圖</li>
+                <li>下載圖像</li>
+                <li>儲存作品到案例庫</li>
+              </ul>
+            </p>
+          </div>
+
           {showRetry && onRetry && (
             <div className="retry-container">
               <p className="retry-message">生成似乎需要較長時間，您可以重試或繼續等待。</p>
               <button className="retry-button" onClick={handleRetry}>
-                重新嘗試生成
+                <span className="retry-icon">🔄</span> 重新嘗試生成
               </button>
             </div>
           )}

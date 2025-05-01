@@ -42,67 +42,81 @@ const ImagePreview = ({ imageUrl, prompt, onSaveCase, modelUsed = 'GPT-4-All' })
 
   return (
     <div className="image-preview">
-      <h2>生成的圖像</h2>
+      <h2>✨ 生成的圖像</h2>
 
-      <div className="image-container">
-        <img src={imageUrl} alt="Generated" />
-        <div className="model-info">
-          生成模型: {modelUsed}
-        </div>
-      </div>
-
-      <div className="prompt-container">
-        <h3>使用的提示詞</h3>
-        <div className="prompt-text">
-          {prompt.split('\n').map((line, index) => (
-            line.trim() ? <p key={index}>- {line}</p> : null
-          ))}
-        </div>
-      </div>
-
-      <div className="actions">
-        <button onClick={handleDownload} className="download-button">
-          下載圖像
-        </button>
-
-        <div className="save-options">
-          <div className="checkbox-group">
-            <input
-              type="checkbox"
-              id="save-as-case"
-              checked={saveAsCase}
-              onChange={() => setSaveAsCase(!saveAsCase)}
-            />
-            <label htmlFor="save-as-case">儲存為案例頁面供其他人參考</label>
-          </div>
-
-          <div className="checkbox-group">
-            <input
-              type="checkbox"
-              id="save-as-prompt"
-              checked={saveAsPrompt}
-              onChange={() => setSaveAsPrompt(!saveAsPrompt)}
-            />
-            <label htmlFor="save-as-prompt">儲存prompt頁面供其他人快速調用</label>
-          </div>
-
-          {(saveAsCase || saveAsPrompt) && (
-            <div className="case-name-input">
-              <input
-                type="text"
-                placeholder="案例名稱"
-                value={caseName}
-                onChange={(e) => setCaseName(e.target.value)}
-              />
-              <button
-                onClick={handleSaveCase}
-                disabled={isSaving}
-                className="save-button"
-              >
-                {isSaving ? '儲存中...' : '儲存'}
-              </button>
+      <div className="image-preview-content">
+        <div className="image-section">
+          <div className="image-container">
+            <img src={imageUrl} alt="Generated" className="generated-image" />
+            <div className="model-info">
+              生成模型: {modelUsed}
             </div>
-          )}
+          </div>
+          <div className="image-actions">
+            <button onClick={handleDownload} className="download-button">
+              <span className="icon">💾</span> 下載圖像
+            </button>
+            <button
+              onClick={() => window.open(imageUrl, '_blank')}
+              className="view-full-button"
+            >
+              <span className="icon">🔍</span> 查看原圖
+            </button>
+          </div>
+        </div>
+
+        <div className="info-section">
+          <div className="prompt-container">
+            <h3>使用的提示詞</h3>
+            <div className="prompt-text">
+              {prompt.split('\n').map((line, index) => (
+                line.trim() ? <p key={index}>- {line}</p> : null
+              ))}
+            </div>
+          </div>
+
+          <div className="save-section">
+            <h3>儲存此作品</h3>
+            <div className="save-options">
+              <div className="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="save-as-case"
+                  checked={saveAsCase}
+                  onChange={() => setSaveAsCase(!saveAsCase)}
+                />
+                <label htmlFor="save-as-case">儲存為案例頁面供其他人參考</label>
+              </div>
+
+              <div className="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="save-as-prompt"
+                  checked={saveAsPrompt}
+                  onChange={() => setSaveAsPrompt(!saveAsPrompt)}
+                />
+                <label htmlFor="save-as-prompt">儲存prompt頁面供其他人快速調用</label>
+              </div>
+
+              {(saveAsCase || saveAsPrompt) && (
+                <div className="case-name-input">
+                  <input
+                    type="text"
+                    placeholder="案例名稱"
+                    value={caseName}
+                    onChange={(e) => setCaseName(e.target.value)}
+                  />
+                  <button
+                    onClick={handleSaveCase}
+                    disabled={isSaving}
+                    className="save-button"
+                  >
+                    {isSaving ? '儲存中...' : '儲存'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

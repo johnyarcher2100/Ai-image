@@ -16,7 +16,7 @@ const ModelStatus = () => {
       try {
         // 使用 api.js 中的 checkApiStatus 函數
         const statuses = await checkApiStatus();
-        
+
         setDeepseekStatus(statuses.deepseek || 'unknown');
         setOpenaiStatus(statuses.openai || 'unknown');
         setSupabaseStatus(statuses.supabase || 'unknown');
@@ -55,7 +55,7 @@ const ModelStatus = () => {
           setIsChecking(false);
         }
       };
-      
+
       checkStatus();
     }
   };
@@ -93,31 +93,40 @@ const ModelStatus = () => {
   return (
     <div className="model-status">
       <div className="status-container">
-        <div className="status-title">API 服務狀態</div>
-        
         <div className="status-items">
           <div className="status-item">
             <span className="status-dot" style={{ backgroundColor: getStatusColor(openaiStatus) }}></span>
-            <span className="model-name">圖像</span>
+            <span className="model-name">圖像生成 API</span>
+            <span className="status-text">{getStatusText(openaiStatus)}</span>
           </div>
-          
+
           <div className="status-item">
             <span className="status-dot" style={{ backgroundColor: getStatusColor(deepseekStatus) }}></span>
-            <span className="model-name">文字</span>
+            <span className="model-name">文字生成 API</span>
+            <span className="status-text">{getStatusText(deepseekStatus)}</span>
           </div>
-          
+
           <div className="status-item">
             <span className="status-dot" style={{ backgroundColor: getStatusColor(supabaseStatus) }}></span>
-            <span className="model-name">數據庫</span>
+            <span className="model-name">數據庫服務</span>
+            <span className="status-text">{getStatusText(supabaseStatus)}</span>
           </div>
-          
-          <button 
-            className="refresh-button" 
+        </div>
+
+        <div className="status-footer">
+          {lastChecked && (
+            <div className="last-checked">
+              上次檢查: {lastChecked.toLocaleTimeString()}
+            </div>
+          )}
+
+          <button
+            className="refresh-button"
             onClick={handleRefresh}
             disabled={isChecking}
             title="重新檢查 API 狀態"
           >
-            {isChecking ? '檢查中' : '重新檢查'}
+            {isChecking ? '檢查中...' : '重新檢查'}
           </button>
         </div>
       </div>

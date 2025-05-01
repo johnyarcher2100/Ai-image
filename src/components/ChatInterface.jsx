@@ -5,7 +5,7 @@ import ImageUrlInput from './ImageUrlInput';
 import ImageUploadMenu from './ImageUploadMenu';
 import '../styles/ChatInterface.css';
 
-const ChatInterface = ({ onImageGeneration, onSaveCase, templateContent, setTemplateContent }) => {
+const ChatInterface = ({ onImageGeneration, onSaveCase, externalPrompt, setExternalPrompt }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,7 @@ const ChatInterface = ({ onImageGeneration, onSaveCase, templateContent, setTemp
   useEffect(() => {
     const welcomeMessage = {
       sender: 'bot',
-      text: '嗨！我是你的靈感圖像助手 🎨\n只要簡單聊個幾句，我就能幫你生成一張專屬的 AI 圖像。\n你只需要用自然的語言告訴我你的想法，比如場景、氛圍、角色、風格等等～\n聊天說明一後，我會再問你是否要出圖喔！',
+      text: '嗨！我是你的靈感圖像助手 🎨\n只要簡單聊聊你的想法，我就能幫你生成一張專屬的 AI 圖像。\n你只需要用自然的語言告訴我你的想法，比如場景、氛圍、角色、風格等等～\n開始描述後，你隨時可以繼續補充細節或直接點擊生成圖像按鈕！',
       timestamp: new Date().toISOString()
     };
     setMessages([welcomeMessage]);
@@ -35,18 +35,26 @@ const ChatInterface = ({ onImageGeneration, onSaveCase, templateContent, setTemp
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 監控對話次數，達到3次後顯示生成按鈕
+  // 監控對話次數，用戶第一次發送消息後就顯示生成按鈕
   useEffect(() => {
-    if (conversationCount >= 3 && !showGenerateButton) {
+    if (conversationCount >= 1 && !showGenerateButton) {
       setShowGenerateButton(true);
-      const generatePrompt = {
-        sender: 'bot',
-        text: '看起來我們已經討論了一些細節，你想要現在生成圖像嗎？',
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, generatePrompt]);
+      // 不再添加額外的提示訊息，讓用戶可以自由決定何時生成圖像
     }
   }, [conversationCount, showGenerateButton]);
+
+  // 監聽外部提示詞的變化，並將其設置到輸入框中
+  useEffect(() => {
+    if (externalPrompt && externalPrompt.trim() !== '') {
+      setInput(externalPrompt);
+      // 聚焦到輸入框，方便用戶直接編輯
+      textareaRef.current?.focus();
+      // 清空外部提示詞，避免重複設置
+      if (setExternalPrompt) {
+        setExternalPrompt('');
+      }
+    }
+  }, [externalPrompt, setExternalPrompt]);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -233,8 +241,9 @@ const ChatInterface = ({ onImageGeneration, onSaveCase, templateContent, setTemp
           <button
             className="generate-button"
             onClick={handleGenerateImage}
+            title="點擊生成圖像，你也可以繼續聊天補充更多細節"
           >
-            立即生成圖像
+            立即生成圖像 ✨
           </button>
         )}
       </div>

@@ -54,6 +54,8 @@ function App() {
     const [selectedCase, setSelectedCase] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showDebug, setShowDebug] = useState(true);
+    const [showStatusModal, setShowStatusModal] = useState(false);
+    const [chatPrompt, setChatPrompt] = useState(''); // 用於傳遞給聊天界面的提示詞
 
     // 調試信息
     console.log('App 狀態初始化完成', {
@@ -185,13 +187,16 @@ function App() {
     // 處理選擇案例
     const handleSelectCase = (caseItem) => {
       setSelectedCase(caseItem);
+      // 將案例的提示詞設置為當前輸入的提示詞，以便在聊天界面中顯示
+      setChatPrompt(caseItem.prompt);
     };
 
     // 處理選擇模板
     const handleSelectTemplate = (template) => {
       setGeneratedPrompt(template.content);
       setSelectedCase(null);
-      // 這裡可以添加更多邏輯，例如將模板應用到聊天界面
+      // 將模板內容設置為當前輸入的提示詞，以便在聊天界面中顯示
+      setChatPrompt(template.content);
     };
 
     // 顯示調試信息
@@ -240,78 +245,103 @@ function App() {
     return (
       <div className="app">
         <header className="app-header">
-          <div className="app-title">阿布吉圖像產生器</div>
-          <ModelStatus />
+          <div className="app-title">阿布吉遊樂場</div>
+          <button className="status-button" onClick={() => setShowStatusModal(true)}>
+            API 狀態
+          </button>
+          {showStatusModal && (
+            <div className="status-modal-overlay" onClick={() => setShowStatusModal(false)}>
+              <div className="status-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="status-modal-header">
+                  <h3>API 服務狀態</h3>
+                  <button className="close-button" onClick={() => setShowStatusModal(false)}>×</button>
+                </div>
+                <div className="status-modal-content">
+                  <ModelStatus />
+                </div>
+              </div>
+            </div>
+          )}
         </header>
 
         <div className="app-content">
-          <div className="main-section">
-            <ChatInterface
-              onImageGeneration={handleImageGeneration}
-              onSaveCase={handleSaveCase}
-            />
-
-            {isGenerating && (
-              <GeneratingStatus
-                prompt={generatedPrompt}
-                modelName="GPT-4o-image-vip"
-                onRetry={handleImageGeneration}
-              />
-            )}
-
-            {generatedImage && !isGenerating && (
-              <ImagePreview
-                imageUrl={generatedImage}
-                prompt={generatedPrompt}
-                onSaveCase={handleSaveCase}
-                modelUsed="GPT-4o-image-vip"
-              />
-            )}
-
-            {selectedCase && (
-              <div className="case-detail">
-                <h3>{selectedCase.title}</h3>
-                <img src={selectedCase.imageUrl} alt={selectedCase.title} />
-                <div className="prompt-text">{selectedCase.prompt}</div>
-                <button
-                  onClick={() => handleImageGeneration(selectedCase.prompt)}
-                  className="primary"
-                >
-                  使用此提示詞重新生成
-                </button>
+          <div className="vertical-layout">
+            <div className="top-section">
+              <div className="chat-section">
+                <ChatInterface
+                  onImageGeneration={handleImageGeneration}
+                  onSaveCase={handleSaveCase}
+                  externalPrompt={chatPrompt}
+                  setExternalPrompt={setChatPrompt}
+                />
               </div>
-            )}
-          </div>
 
-          <div className="sidebar">
-            <div className="tab-container">
-              <button
-                className={`tab ${activeTab === 'cases' ? 'active' : ''}`}
-                onClick={() => setActiveTab('cases')}
-              >
-                案例頁面
-              </button>
-              <button
-                className={`tab ${activeTab === 'prompts' ? 'active' : ''}`}
-                onClick={() => setActiveTab('prompts')}
-              >
-                Prompt 模板
-              </button>
+              <div className="sidebar">
+                <div className="tab-container">
+                  <button
+                    className={`tab ${activeTab === 'cases' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('cases')}
+                  >
+                    案例頁面
+                  </button>
+                  <button
+                    className={`tab ${activeTab === 'prompts' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('prompts')}
+                  >
+                    Prompt 模板
+                  </button>
+                </div>
+
+                {activeTab === 'cases' && (
+                  <CaseStudies
+                    cases={cases}
+                    onSelectCase={handleSelectCase}
+                  />
+                )}
+
+                {activeTab === 'prompts' && (
+                  <PromptTemplates
+                    templates={promptTemplates}
+                    onSelectTemplate={handleSelectTemplate}
+                  />
+                )}
+              </div>
             </div>
 
-            {activeTab === 'cases' && (
-              <CaseStudies
-                cases={cases}
-                onSelectCase={handleSelectCase}
-              />
-            )}
+            <div className="bottom-section">
+              <div className="result-section">
+                {isGenerating && (
+                  <GeneratingStatus
+                    prompt={generatedPrompt}
+                    modelName="GPT-4o-image-vip"
+                    onRetry={handleImageGeneration}
+                  />
+                )}
 
-            {activeTab === 'prompts' && (
-              <PromptTemplates
-                templates={promptTemplates}
-                onSelectTemplate={handleSelectTemplate}
-              />
-            )}
+                {generatedImage && !isGenerating && (
+                  <ImagePreview
+                    imageUrl={generatedImage}
+                    prompt={generatedPrompt}
+                    onSaveCase={handleSaveCase}
+                    modelUsed="GPT-4o-image-vip"
+                  />
+                )}
+
+                {selectedCase && (
+                  <div className="case-detail">
+                    <h3>{selectedCase.title}</h3>
+                    <img src={selectedCase.imageUrl} alt={selectedCase.title} />
+                    <div className="prompt-text">{selectedCase.prompt}</div>
+                    <button
+                      onClick={() => handleImageGeneration(selectedCase.prompt)}
+                      className="primary"
+                    >
+                      使用此提示詞重新生成
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         {ENABLE_DEBUG_CONSOLE && <DebugConsole />}
