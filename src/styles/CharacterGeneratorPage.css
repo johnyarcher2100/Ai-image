@@ -1,0 +1,98 @@
+.character-generator-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--background-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.character-page-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--background-light);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.character-page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  opacity: 0.7;
+}
+
+.character-page-header .back-button {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.character-page-header .back-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.character-page-header .page-title {
+  margin: 0 auto;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-primary);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.character-page-header .view-gallery-button {
+  background-color: rgba(76, 175, 80, 0.2);
+  border: 1px solid #4caf50;
+  color: #4caf50;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.character-page-header .view-gallery-button:hover {
+  background-color: rgba(76, 175, 80, 0.3);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+.character-page-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow: auto;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(74, 144, 226, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
+    linear-gradient(to bottom, var(--background-dark), var(--background-light));
+}
+
+/* 修改 CharacterGenerator 在頁面中的樣式 */
+.character-page-content .character-generator {
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.character-page-content .character-generator-content {
+  background: rgba(16, 42, 67, 0.7);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
+}

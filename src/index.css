@@ -307,6 +307,19 @@ button:hover::before {
   left: 100%;
 }
 
+/* 添加脈衝動畫效果 */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 229, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
+  }
+}
+
 button.primary {
   background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
   color: white;

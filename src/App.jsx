@@ -6,6 +6,10 @@ import ImagePreview from './components/ImagePreview';
 import GeneratingStatus from './components/GeneratingStatus';
 import CaseStudies from './components/CaseStudies';
 import PromptTemplates from './components/PromptTemplates';
+import StoryGeneratorModal from './components/StoryGeneratorModal';
+import StoryGeneratorPage from './components/StoryGeneratorPage';
+import CharacterGeneratorPage from './components/CharacterGeneratorPage';
+import CharacterGalleryPage from './components/CharacterGalleryPage';
 import DebugConsole from './components/DebugConsole';
 import { generateImageWithOpenAI, saveCase, savePromptTemplate, getCases, getPromptTemplates, ensureTablesExist } from './services/api';
 
@@ -45,7 +49,7 @@ function App() {
   console.log('App 組件開始渲染');
 
   try {
-    const [activeTab, setActiveTab] = useState('cases'); // 'cases' or 'prompts'
+    const [activeTab, setActiveTab] = useState('cases'); // 'cases', 'prompts', or 'story'
     const [generatedImage, setGeneratedImage] = useState(null);
     const [generatedPrompt, setGeneratedPrompt] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -55,7 +59,9 @@ function App() {
     const [isLoading, setIsLoading] = useState(true);
     const [showDebug, setShowDebug] = useState(true);
     const [showStatusModal, setShowStatusModal] = useState(false);
+    const [showStoryGenerator, setShowStoryGenerator] = useState(false);
     const [chatPrompt, setChatPrompt] = useState(''); // 用於傳遞給聊天界面的提示詞
+    const [currentPage, setCurrentPage] = useState('main'); // 'main', 'story-generator', 'character-generator', or 'character-gallery'
 
     // 調試信息
     console.log('App 狀態初始化完成', {
@@ -242,13 +248,111 @@ function App() {
     }
 
     console.log('渲染主要應用界面');
+
+    // 如果當前頁面是故事生成器頁面
+    if (currentPage === 'story-generator') {
+      return (
+        <StoryGeneratorPage onBack={() => setCurrentPage('main')} />
+      );
+    }
+
+    // 如果當前頁面是人物主角生成頁面
+    if (currentPage === 'character-generator') {
+      return (
+        <CharacterGeneratorPage
+          onBack={() => setCurrentPage('main')}
+          onViewGallery={() => setCurrentPage('character-gallery')}
+        />
+      );
+    }
+
+    // 如果當前頁面是角色庫頁面
+    if (currentPage === 'character-gallery') {
+      return (
+        <CharacterGalleryPage
+          onBack={() => setCurrentPage('main')}
+          onCreateCharacter={() => setCurrentPage('character-generator')}
+        />
+      );
+    }
+
+    // 主頁面
     return (
       <div className="app">
         <header className="app-header">
           <div className="app-title">阿布吉遊樂場</div>
-          <button className="status-button" onClick={() => setShowStatusModal(true)}>
-            API 狀態
-          </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              // 暫時禁用連續圖像生成功能
+              // onClick={() => setCurrentPage('story-generator')}
+              style={{
+                padding: '10px 15px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                backgroundColor: '#0c2461',
+                color: 'rgba(255, 255, 255, 0.5)',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                border: '2px solid #666',
+                borderRadius: '8px',
+                cursor: 'not-allowed',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              title="此功能暫時不可用"
+              disabled
+            >
+              連續圖像生成
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px'
+              }}>
+                即將推出
+              </div>
+            </button>
+            <button
+              onClick={() => setCurrentPage('character-generator')}
+              style={{
+                padding: '10px 15px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                backgroundColor: '#0c2461',
+                color: 'white',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                border: '2px solid #ff5722',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              人物主角生成
+            </button>
+            <button
+              onClick={() => setCurrentPage('character-gallery')}
+              style={{
+                padding: '10px 15px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                backgroundColor: '#0c2461',
+                color: 'white',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                border: '2px solid #4caf50',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              角色庫
+            </button>
+            <button className="status-button" onClick={() => setShowStatusModal(true)}>
+              API 狀態
+            </button>
+          </div>
           {showStatusModal && (
             <div className="status-modal-overlay" onClick={() => setShowStatusModal(false)}>
               <div className="status-modal" onClick={(e) => e.stopPropagation()}>
@@ -277,19 +381,22 @@ function App() {
               </div>
 
               <div className="sidebar">
-                <div className="tab-container">
+                <div className="tab-container" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <button
                     className={`tab ${activeTab === 'cases' ? 'active' : ''}`}
                     onClick={() => setActiveTab('cases')}
+                    style={{ padding: '12px', fontSize: '16px', fontWeight: activeTab === 'cases' ? 'bold' : 'normal' }}
                   >
                     案例頁面
                   </button>
                   <button
                     className={`tab ${activeTab === 'prompts' ? 'active' : ''}`}
                     onClick={() => setActiveTab('prompts')}
+                    style={{ padding: '12px', fontSize: '16px', fontWeight: activeTab === 'prompts' ? 'bold' : 'normal' }}
                   >
                     Prompt 模板
                   </button>
+                  {/* 連續圖像生成按鈕已移至頂部導航欄 */}
                 </div>
 
                 {activeTab === 'cases' && (

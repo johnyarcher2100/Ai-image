@@ -1,0 +1,102 @@
+.story-generator-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--background-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.story-page-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--background-light);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.story-page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  opacity: 0.7;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 1rem;
+  background-color: rgba(16, 42, 67, 0.7);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.back-button:hover {
+  background-color: var(--hover-color);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+.page-title {
+  margin-left: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+.story-page-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow: auto;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(74, 144, 226, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
+    linear-gradient(to bottom, var(--background-dark), var(--background-light));
+}
+
+/* 修改 StoryGenerator 在頁面中的樣式 */
+.story-page-content .story-generator {
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.story-page-content .story-generator-content {
+  background: rgba(16, 42, 67, 0.7);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .story-page-header {
+    padding: 0.8rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .page-title {
+    margin-left: 0;
+    font-size: 1.5rem;
+  }
+
+  .story-page-content {
+    padding: 1rem;
+  }
+}
