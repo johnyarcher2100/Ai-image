@@ -1,0 +1,147 @@
+.style-selector-container {
+  margin-bottom: 1.5rem;
+  background: rgba(10, 25, 41, 0.3);
+  padding: 1.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+/* 主風格選擇區域 */
+.main-styles {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.main-style-item {
+  flex: 1;
+  min-width: 150px;
+  background: rgba(16, 42, 67, 0.7);
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.main-style-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.main-style-item.selected {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+  background: rgba(16, 42, 67, 0.9);
+}
+
+.main-style-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.main-style-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* 子風格選擇區域 */
+.sub-styles {
+  margin-top: 1.5rem;
+}
+
+.sub-styles h3 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  border-left: 3px solid var(--accent-color);
+  padding-left: 10px;
+}
+
+.sub-styles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.sub-style-item {
+  background: rgba(16, 42, 67, 0.5);
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sub-style-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.sub-style-item.selected {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+  background: rgba(16, 42, 67, 0.8);
+}
+
+.sub-style-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.sub-style-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.sub-style-examples {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.sub-style-examples span {
+  color: var(--accent-color);
+}
+
+/* 已選擇風格信息 */
+.selected-style-info {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(0, 229, 255, 0.1);
+  border-radius: 6px;
+  border: 1px solid var(--accent-color);
+}
+
+.selected-style-info h3 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.style-prompt-hint {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.style-prompt-hint strong {
+  color: var(--accent-color);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .main-styles {
+    flex-direction: column;
+  }
+  
+  .sub-styles-grid {
+    grid-template-columns: 1fr;
+  }
+}

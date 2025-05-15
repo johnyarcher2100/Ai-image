@@ -10,7 +10,7 @@ const DEEPSEEK_MODEL = import.meta.env.VITE_DEEPSEEK_MODEL || 'deepseek-chat';
 // OpenAI API 設定
 const OPENAI_OFFICIAL_API_URL = import.meta.env.VITE_OPENAI_OFFICIAL_API_URL || 'https://api.openai.com';
 const OPENAI_PROXY_API_URL = import.meta.env.VITE_OPENAI_PROXY_API_URL || 'https://zzzzapi.com';
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || 'sk-9cvqokIx2yRvi1wJ02Off8vGWQqkEbNPSuZuM1ZYB8Lbbski';
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || 'sk-OGysI6RuRDR6NDKZPd9lvzN36lspNNSeeKqw9tKmk2u0y13d';
 const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-image-vip';
 
 // 發送訊息到 Deepseek API 進行文字對話
@@ -165,6 +165,471 @@ export const generateImageWithOpenAI = async (prompt, referenceImageUrl = null) 
     throw error;
   }
 };
+
+// 生成表情貼圖
+export const generateStickerImage = async (sourceImageUrl, templateId, stickerSize, stickerFormat, userPrompt = '', styleInfo = null, realismLevel = 50) => {
+  try {
+    console.log('開始生成表情貼圖...');
+    console.log('來源圖片:', sourceImageUrl);
+    console.log('表情模板ID:', templateId);
+    console.log('貼圖尺寸:', stickerSize);
+    console.log('貼圖格式:', stickerFormat);
+    console.log('用戶提示:', userPrompt);
+    console.log('風格信息:', styleInfo);
+    console.log('真實感百分比:', realismLevel);
+
+    // 使用中轉地址
+    const apiUrl = `${OPENAI_PROXY_API_URL}/v1/chat/completions`;
+
+    // 根據模板ID獲取表情名稱
+    const templateName = getTemplateNameById(templateId);
+
+    // 構建基本提示詞
+    let prompt = `請將提供的照片轉換為"${templateName}"表情的貼圖。
+    保持人物的臉部特徵，但添加${templateName}表情的元素。
+    生成的貼圖應該是${stickerSize}尺寸，${stickerFormat === 'png' ? '帶透明背景' : ''}。
+    請確保表情生動自然，風格一致，並保留原始照片的主要特徵。`;
+
+    // 根據尺寸添加不同的指導
+    if (stickerSize === '240x240' || stickerSize === '370x320' || stickerSize === '96x74') {
+      prompt += `
+      這是LINE貼圖標準尺寸，請在圖片周圍留有適當的留白（約10像素），確保貼圖在聊天中顯示美觀。
+      貼圖應該易於日常對話中使用，表情和訊息應該淺顯易懂。`;
+    } else if (stickerSize === '1024x1024' || stickerSize === '768x768' || stickerSize === '512x512') {
+      prompt += `
+      這是標準方形尺寸，請確保圖像清晰且細節豐富，適合作為高質量的表情圖片。`;
+    } else if (stickerSize === '800x600' || stickerSize === '1280x720') {
+      prompt += `
+      這是寬幅矩形尺寸，請確保圖像構圖合理，主體內容居中或遵循三分法則，適合作為橫向展示的表情圖片。`;
+    }
+
+    prompt += `
+    真實感程度: ${realismLevel}%（0%表示完全卡通風格，100%表示完全真實照片風格）`;
+
+    // 如果選擇了風格，添加風格提示
+    if (styleInfo) {
+      prompt += `\n\n貼圖風格: ${styleInfo.name} (${styleInfo.mainStyleName})
+      風格描述: ${styleInfo.description}
+      風格提示: ${styleInfo.promptHint}`;
+    }
+
+    // 如果用戶提供了自定義提示，則添加到提示詞中
+    if (userPrompt && userPrompt.trim()) {
+      prompt += `\n\n用戶特別要求: ${userPrompt.trim()}`;
+    }
+
+    // 準備訊息內容
+    const messages = [
+      {
+        role: 'system',
+        content: '你是一個專業的表情貼圖生成助手，能夠將用戶提供的照片轉換為各種表情貼圖。請只回傳一張圖片。'
+      },
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: sourceImageUrl } }
+        ]
+      }
+    ];
+
+    const requestBody = {
+      model: OPENAI_MODEL,
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 1000
+    };
+
+    console.log('發送表情貼圖生成請求...');
+
+    // 實際 API 調用
+    const response = await axios.post(
+      apiUrl,
+      requestBody,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        }
+      }
+    );
+
+    console.log('表情貼圖生成響應接收到:', JSON.stringify(response.data));
+
+    // 處理不同的響應格式
+    if (response.data && response.data.choices && response.data.choices.length > 0) {
+      const messageContent = response.data.choices[0].message.content;
+
+      // 處理字符串格式的響應
+      if (typeof messageContent === 'string') {
+        // 從文本中嘗試提取 URL
+        const urlMatch = messageContent.match(/(https?:\/\/[^\s]+)/g);
+        if (urlMatch && urlMatch.length > 0) {
+          return {
+            imageUrl: urlMatch[0],
+            templateId: templateId,
+            templateName: templateName,
+            size: stickerSize,
+            format: stickerFormat
+          };
+        }
+      }
+      // 處理數組格式的響應
+      else if (Array.isArray(messageContent)) {
+        const imageItem = messageContent.find(item => item.type === 'image_url');
+        if (imageItem && imageItem.image_url && imageItem.image_url.url) {
+          return {
+            imageUrl: imageItem.image_url.url,
+            templateId: templateId,
+            templateName: templateName,
+            size: stickerSize,
+            format: stickerFormat
+          };
+        }
+      }
+    }
+
+    // 如果無法從標準格式中獲取 URL，嘗試從整個響應中查找
+    const responseStr = JSON.stringify(response.data);
+    const urlMatch = responseStr.match(/"url":"(https?:\/\/[^"]+)"/);
+    if (urlMatch && urlMatch.length > 1) {
+      return {
+        imageUrl: urlMatch[1],
+        templateId: templateId,
+        templateName: templateName,
+        size: stickerSize,
+        format: stickerFormat
+      };
+    }
+
+    // 如果仍然找不到 URL，則拋出錯誤
+    throw new Error('無法從 API 響應中提取表情貼圖 URL');
+  } catch (error) {
+    console.error('生成表情貼圖時出錯:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', JSON.stringify(error.response.data));
+    }
+    throw error;
+  }
+};
+
+// 根據風格生成文字參數建議
+export const generateTextPromptSuggestions = async (styleInfo) => {
+  try {
+    console.log('開始生成文字參數建議...');
+    console.log('風格信息:', styleInfo);
+
+    if (!styleInfo) {
+      throw new Error('未提供風格信息');
+    }
+
+    // 構建提示詞
+    const prompt = `請為我生成20組不同的文字參數，用於生成LINE表情貼圖。
+
+    風格類型: ${styleInfo.mainStyleName}
+    子風格: ${styleInfo.name}
+    風格描述: ${styleInfo.description}
+    風格提示: ${styleInfo.promptHint}
+
+    每個文字參數應該:
+    1. 具體描述表情貼圖的視覺風格、情緒表達方式或特殊效果
+    2. 長度在20-50字之間，簡潔有力
+    3. 符合所選風格的特點和市場需求
+    4. 能夠指導AI生成高質量、有吸引力的表情貼圖
+    5. 每個參數都應該有所不同，覆蓋不同的風格變化或表現方式
+
+    請以編號列表形式輸出，每個參數一行，不要有多餘的解釋。`;
+
+    // 使用 Deepseek API 生成建議
+    const messages = [
+      {
+        role: 'system',
+        content: '你是一個專業的表情貼圖設計師，擅長為不同風格的貼圖提供具體的文字參數建議。你的建議應該簡潔、具體、多樣化，並且符合市場需求。'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
+
+    console.log('發送請求到 DeepSeek API...');
+    const response = await axios.post(
+      `${DEEPSEEK_API_URL}/v1/chat/completions`,
+      {
+        model: DEEPSEEK_MODEL,
+        messages: messages,
+        temperature: 0.8,
+        max_tokens: 2000
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        }
+      }
+    );
+
+    if (!response.data || !response.data.choices || !response.data.choices[0]) {
+      console.error('DeepSeek API 回應無效:', response.data);
+      throw new Error('無法從 API 獲取有效的回應');
+    }
+
+    const suggestionsText = response.data.choices[0].message.content;
+    console.log('成功從 DeepSeek 獲取文字參數建議');
+
+    // 解析建議文本為數組
+    const suggestions = parsePromptSuggestions(suggestionsText);
+
+    return suggestions;
+  } catch (error) {
+    console.error('生成文字參數建議時出錯:', error);
+    throw error;
+  }
+};
+
+// 解析文字參數建議
+function parsePromptSuggestions(suggestionsText) {
+  try {
+    // 嘗試匹配編號列表格式 (1. xxx, 2. xxx, 等)
+    const numberedListRegex = /\d+[\.\)]\s*(.+?)(?=\n\d+[\.\)]|$)/g;
+    let match;
+    const suggestions = [];
+
+    while ((match = numberedListRegex.exec(suggestionsText)) !== null) {
+      if (match[1] && match[1].trim()) {
+        suggestions.push(match[1].trim());
+      }
+    }
+
+    // 如果沒有匹配到編號列表，嘗試按行分割
+    if (suggestions.length === 0) {
+      const lines = suggestionsText.split('\n').filter(line => line.trim());
+      for (const line of lines) {
+        // 移除可能的編號前綴
+        const cleanLine = line.replace(/^\d+[\.\)]\s*/, '').trim();
+        if (cleanLine) {
+          suggestions.push(cleanLine);
+        }
+      }
+    }
+
+    // 確保只返回最多20個建議
+    return suggestions.slice(0, 20);
+  } catch (error) {
+    console.error('解析文字參數建議時出錯:', error);
+    return [];
+  }
+}
+
+// 批量生成表情貼圖
+export const generateMultipleStickers = async (sourceImageUrl, templateIds, stickerSize, stickerFormat, userPrompt = '', styleInfo = null, realismLevel = 50) => {
+  try {
+    console.log('開始批量生成表情貼圖...');
+    console.log('選擇的模板數量:', templateIds.length);
+    console.log('用戶提示:', userPrompt);
+    console.log('風格信息:', styleInfo);
+    console.log('真實感百分比:', realismLevel);
+
+    // 創建一個Promise數組來並行處理多個請求
+    const stickerPromises = templateIds.map(templateId =>
+      generateStickerImage(sourceImageUrl, templateId, stickerSize, stickerFormat, userPrompt, styleInfo, realismLevel)
+    );
+
+    // 等待所有請求完成
+    const results = await Promise.allSettled(stickerPromises);
+
+    // 處理結果
+    const successfulStickers = [];
+    const failedTemplateIds = [];
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        successfulStickers.push(result.value);
+      } else {
+        console.error(`模板ID ${templateIds[index]} 生成失敗:`, result.reason);
+        failedTemplateIds.push(templateIds[index]);
+      }
+    });
+
+    console.log(`批量生成完成。成功: ${successfulStickers.length}, 失敗: ${failedTemplateIds.length}`);
+
+    return {
+      stickers: successfulStickers,
+      failedTemplateIds: failedTemplateIds
+    };
+  } catch (error) {
+    console.error('批量生成表情貼圖時出錯:', error);
+    throw error;
+  }
+};
+
+// 根據模板ID獲取模板名稱的輔助函數
+function getTemplateNameById(templateId) {
+  // 這裡應該從某個地方獲取模板名稱，暫時使用硬編碼的映射
+  const templateNames = {
+    1: '開心', 2: '大笑', 3: '驚訝', 4: '疑惑', 5: '思考',
+    6: '無奈', 7: '哭泣', 8: '大哭', 9: '生氣', 10: '憤怒',
+    11: '害羞', 12: '愛心', 13: '得意', 14: '嘲笑', 15: '無聊',
+    16: '睡覺', 17: '驚恐', 18: '尷尬', 19: '冷汗', 20: '嘆氣',
+    21: '期待', 22: '驕傲', 23: '委屈', 24: '感動', 25: '困惑',
+    26: '不屑', 27: '調皮', 28: '陶醉', 29: '緊張', 30: '興奮',
+    31: '無辜', 32: '沮喪', 33: '滿足', 34: '懷疑', 35: '嫌棄',
+    36: '驚喜', 37: '佩服', 38: '心碎', 39: '鬼臉', 40: '贊同'
+  };
+
+  return templateNames[templateId] || '未知表情';
+}
+
+// 使用 deepseek-chat 生成角色提示詞
+export const generatePromptWithDeepseek = async (basePrompt, backgroundPrompt, themeName) => {
+  try {
+    console.log('開始生成角色提示詞...');
+    console.log('基礎提示詞:', basePrompt);
+    console.log('背景提示詞:', backgroundPrompt);
+    console.log('主題名稱:', themeName);
+
+    // 構建系統提示詞
+    const systemPrompt = `你是一個專業的圖像生成提示詞專家，能夠根據基礎提示詞生成更詳細的變體。
+請根據我提供的基礎提示詞和背景提示詞，生成一個更詳細、更具創意的提示詞變體。
+這個變體應該保持原始提示詞的核心意圖和主題風格，但在表達方式、細節描述或場景設定上有所變化，以產生更豐富的結果。
+請直接返回完整的提示詞變體，不要有其他解釋性文字。`;
+
+    // 構建用戶提示詞
+    const userPrompt = `基礎提示詞：${basePrompt}
+背景提示詞：${backgroundPrompt}
+主題風格：${themeName}
+
+請生成一個更詳細、更具創意的提示詞變體，保持核心意圖和主題風格，但在表達方式、細節或場景設定上有所變化。`;
+
+    // 準備訊息內容
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ];
+
+    console.log('發送請求到 DeepSeek API...');
+    const response = await axios.post(
+      `${DEEPSEEK_API_URL}/v1/chat/completions`,
+      {
+        model: DEEPSEEK_MODEL,
+        messages: messages,
+        temperature: 0.8,
+        max_tokens: 2000
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        }
+      }
+    );
+
+    if (!response.data || !response.data.choices || !response.data.choices[0]) {
+      console.error('DeepSeek API 回應無效:', response.data);
+      throw new Error('無法從 API 獲取有效的回應');
+    }
+
+    const variantPrompt = response.data.choices[0].message.content;
+    console.log('成功從 DeepSeek 獲取變體提示詞');
+
+    return variantPrompt.trim();
+  } catch (error) {
+    console.error('生成變體提示詞時出錯:', error);
+    // 如果出錯，返回原始提示詞
+    return basePrompt;
+  }
+};
+
+// 使用 deepseek-chat 生成變體 prompts
+export const generateVariantPrompts = async (basePrompt, variantCount = 3) => {
+  try {
+    console.log('開始生成變體 prompts...');
+    console.log('基礎 prompt:', basePrompt);
+    console.log('變體數量:', variantCount);
+
+    // 構建系統提示詞
+    const systemPrompt = `你是一個專業的圖像生成提示詞專家，能夠根據基礎提示詞生成多樣化的變體。
+請根據我提供的基礎提示詞，生成 ${variantCount} 個變體提示詞。
+這些變體應該保持原始提示詞的核心意圖，但在表達方式、細節描述或風格上有所變化，以產生多樣化的結果。
+每個變體都應該是完整的提示詞，而不僅僅是修改建議。
+請直接返回這 ${variantCount} 個變體提示詞，每個變體用數字編號並換行分隔，不要有其他解釋性文字。`;
+
+    // 構建用戶提示詞
+    const userPrompt = `基礎提示詞：${basePrompt}
+
+請生成 ${variantCount} 個變體提示詞，保持核心意圖但在表達方式、細節或風格上有所變化。`;
+
+    // 準備訊息內容
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ];
+
+    console.log('發送請求到 DeepSeek API...');
+    const response = await axios.post(
+      `${DEEPSEEK_API_URL}/v1/chat/completions`,
+      {
+        model: DEEPSEEK_MODEL,
+        messages: messages,
+        temperature: 0.8,
+        max_tokens: 2000
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        }
+      }
+    );
+
+    if (!response.data || !response.data.choices || !response.data.choices[0]) {
+      console.error('DeepSeek API 回應無效:', response.data);
+      throw new Error('無法從 API 獲取有效的回應');
+    }
+
+    const variantsText = response.data.choices[0].message.content;
+    console.log('成功從 DeepSeek 獲取變體提示詞');
+
+    // 解析變體提示詞
+    const variants = parseVariantPrompts(variantsText, variantCount);
+    return variants;
+  } catch (error) {
+    console.error('生成變體提示詞時出錯:', error);
+    // 如果出錯，返回簡單的變體
+    return Array(variantCount).fill(basePrompt).map((prompt, index) =>
+      `${prompt} (變體 ${index + 1})`
+    );
+  }
+};
+
+// 解析變體提示詞的輔助函數
+function parseVariantPrompts(text, expectedCount) {
+  try {
+    // 嘗試使用正則表達式匹配數字編號的提示詞
+    const regex = /\d+[\.\):]?\s*(.*?)(?=\n\d+[\.\):]?|$)/gs;
+    const matches = [...text.matchAll(regex)];
+
+    const variants = matches.map(match => match[1].trim());
+
+    // 如果找到的變體數量不符合預期，使用簡單的分行解析
+    if (variants.length !== expectedCount) {
+      const lines = text.split('\n').filter(line => line.trim());
+      return lines.slice(0, expectedCount).map(line => {
+        // 移除行首的數字和標點
+        return line.replace(/^\d+[\.\):]?\s*/, '').trim();
+      });
+    }
+
+    return variants;
+  } catch (error) {
+    console.error('解析變體提示詞時出錯:', error);
+    // 如果解析出錯，返回原始文本按行分割
+    return text.split('\n')
+      .filter(line => line.trim())
+      .slice(0, expectedCount);
+  }
+}
 
 // 使用 GPT-4o-image-vip 分析圖像並生成描述
 export const analyzeImageWithGPT4o = async (imageUrl) => {

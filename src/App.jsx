@@ -10,6 +10,7 @@ import StoryGeneratorModal from './components/StoryGeneratorModal';
 import StoryGeneratorPage from './components/StoryGeneratorPage';
 import CharacterGeneratorPage from './components/CharacterGeneratorPage';
 import CharacterGalleryPage from './components/CharacterGalleryPage';
+import DeluxeCharacterGeneratorPage from './components/DeluxeCharacterGeneratorPage';
 import DebugConsole from './components/DebugConsole';
 import { generateImageWithOpenAI, saveCase, savePromptTemplate, getCases, getPromptTemplates, ensureTablesExist } from './services/api';
 
@@ -61,7 +62,7 @@ function App() {
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [showStoryGenerator, setShowStoryGenerator] = useState(false);
     const [chatPrompt, setChatPrompt] = useState(''); // 用於傳遞給聊天界面的提示詞
-    const [currentPage, setCurrentPage] = useState('main'); // 'main', 'story-generator', 'character-generator', or 'character-gallery'
+    const [currentPage, setCurrentPage] = useState('main'); // 'main', 'story-generator', 'character-generator', 'character-gallery', 'sticker-generator', or 'deluxe-sticker-generator'
 
     // 調試信息
     console.log('App 狀態初始化完成', {
@@ -276,6 +277,15 @@ function App() {
       );
     }
 
+    // 如果當前頁面是豪華角色貼圖頁面
+    if (currentPage === 'deluxe-character-generator') {
+      return (
+        <DeluxeCharacterGeneratorPage onBack={() => setCurrentPage('main')} />
+      );
+    }
+
+    // 表情貼圖生成頁面已移除
+
     // 主頁面
     return (
       <div className="app">
@@ -283,39 +293,20 @@ function App() {
           <div className="app-title">阿布吉遊樂場</div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button
-              // 暫時禁用連續圖像生成功能
-              // onClick={() => setCurrentPage('story-generator')}
+              onClick={() => setCurrentPage('story-generator')}
               style={{
                 padding: '10px 15px',
                 fontSize: '16px',
                 fontWeight: 'bold',
                 backgroundColor: '#0c2461',
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: 'white',
                 boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                border: '2px solid #666',
+                border: '2px solid #1e88e5',
                 borderRadius: '8px',
-                cursor: 'not-allowed',
-                position: 'relative',
-                overflow: 'hidden'
+                cursor: 'pointer'
               }}
-              title="此功能暫時不可用"
-              disabled
             >
               連續圖像生成
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px'
-              }}>
-                即將推出
-              </div>
             </button>
             <button
               onClick={() => setCurrentPage('character-generator')}
@@ -349,6 +340,23 @@ function App() {
             >
               角色庫
             </button>
+            <button
+              onClick={() => setCurrentPage('deluxe-character-generator')}
+              style={{
+                padding: '10px 15px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                backgroundColor: '#0c2461',
+                color: 'white',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                border: '2px solid #e91e63',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              豪華角色貼圖
+            </button>
+            {/* 表情貼圖生成按鈕已移除 */}
             <button className="status-button" onClick={() => setShowStatusModal(true)}>
               API 狀態
             </button>

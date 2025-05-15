@@ -137,13 +137,6 @@ const CharacterGallery = () => {
             className="character-card"
             onClick={() => openCharacterDetail(character)}
           >
-            <div className="character-image-container">
-              <img
-                src={character.imageUrl}
-                alt={character.name}
-                className="character-image"
-              />
-            </div>
             <div className="character-info">
               <h3 className="character-name">{character.name}</h3>
               <p className="character-style">{character.styleName}</p>
