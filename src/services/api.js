@@ -74,10 +74,18 @@ export const generateImageWithOpenAI = async (prompt, referenceImageUrl = null) 
     // 使用中轉地址
     const apiUrl = `${OPENAI_PROXY_API_URL}/v1/chat/completions`;
     console.log('使用 API 地址:', OPENAI_PROXY_API_URL);
+    console.log('使用 API 密鑰:', OPENAI_API_KEY.substring(0, 10) + '...');
 
     console.log('Sending image generation request to OpenAI API...');
     console.log('API URL:', apiUrl);
     console.log('Model:', OPENAI_MODEL);
+    console.log('提示詞長度:', prompt.length);
+
+    // 檢查提示詞長度，如果太長則截斷
+    const maxPromptLength = 4000;
+    const trimmedPrompt = prompt.length > maxPromptLength
+      ? prompt.substring(0, maxPromptLength) + '...(已截斷)'
+      : prompt;
 
     // 準備訊息內容
     const messages = [
@@ -89,17 +97,23 @@ export const generateImageWithOpenAI = async (prompt, referenceImageUrl = null) 
 
     // 如果有參考圖片，則添加到訊息中
     if (referenceImageUrl) {
+      // 檢查參考圖片URL是否有效
+      if (!referenceImageUrl.startsWith('http') && !referenceImageUrl.startsWith('data:')) {
+        console.error('參考圖片URL無效:', referenceImageUrl.substring(0, 50) + '...');
+        throw new Error('參考圖片URL無效');
+      }
+
       messages.push({
         role: 'user',
         content: [
-          { type: 'text', text: `請根據以下描述生成一張圖像：\n\n${prompt}` },
+          { type: 'text', text: `請根據以下描述生成一張圖像：\n\n${trimmedPrompt}` },
           { type: 'image_url', image_url: { url: referenceImageUrl } }
         ]
       });
     } else {
       messages.push({
         role: 'user',
-        content: `請根據以下描述生成一張圖像：\n\n${prompt}`
+        content: `請根據以下描述生成一張圖像：\n\n${trimmedPrompt}`
       });
     }
 
@@ -110,9 +124,21 @@ export const generateImageWithOpenAI = async (prompt, referenceImageUrl = null) 
       max_tokens: 1000
     };
 
-    console.log('Request Body:', JSON.stringify(requestBody));
+    console.log('Request Body (部分):', JSON.stringify({
+      model: requestBody.model,
+      temperature: requestBody.temperature,
+      max_tokens: requestBody.max_tokens,
+      messages: [
+        requestBody.messages[0],
+        {
+          role: 'user',
+          content: referenceImageUrl ? '[包含文本和圖像]' : '[僅文本]'
+        }
+      ]
+    }));
 
     // 實際 API 調用
+    console.log('開始發送請求...');
     const response = await axios.post(
       apiUrl,
       requestBody,
@@ -120,49 +146,92 @@ export const generateImageWithOpenAI = async (prompt, referenceImageUrl = null) 
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENAI_API_KEY}`
-        }
+        },
+        timeout: 600000 // 設置600秒(10分鐘)超時，確保有足夠時間處理複雜圖像生成
       }
     );
 
-    console.log('Image generation response received:', JSON.stringify(response.data));
+    console.log('收到API響應，狀態碼:', response.status);
+
+    // 檢查響應是否包含數據
+    if (!response.data) {
+      console.error('API響應不包含數據');
+      throw new Error('API響應不包含數據');
+    }
+
+    console.log('響應數據類型:', typeof response.data);
+    console.log('響應數據結構:', Object.keys(response.data).join(', '));
+
+    if (response.data.choices && response.data.choices.length > 0) {
+      console.log('響應包含選項數量:', response.data.choices.length);
+      console.log('第一個選項類型:', typeof response.data.choices[0]);
+      console.log('第一個選項結構:', Object.keys(response.data.choices[0]).join(', '));
+
+      if (response.data.choices[0].message) {
+        console.log('消息類型:', typeof response.data.choices[0].message);
+        console.log('消息結構:', Object.keys(response.data.choices[0].message).join(', '));
+        console.log('內容類型:', typeof response.data.choices[0].message.content);
+      }
+    }
 
     // 處理不同的響應格式
     if (response.data && response.data.choices && response.data.choices.length > 0) {
       const messageContent = response.data.choices[0].message.content;
+      console.log('消息內容類型:', typeof messageContent);
 
       // 處理字符串格式的響應
       if (typeof messageContent === 'string') {
+        console.log('消息內容(部分):', messageContent.substring(0, 100) + '...');
         // 從文本中嘗試提取 URL
         const urlMatch = messageContent.match(/(https?:\/\/[^\s]+)/g);
         if (urlMatch && urlMatch.length > 0) {
+          console.log('從文本中提取到URL:', urlMatch[0]);
           return urlMatch[0];
+        } else {
+          console.error('無法從文本中提取URL');
         }
       }
       // 處理數組格式的響應
       else if (Array.isArray(messageContent)) {
+        console.log('消息內容是數組，長度:', messageContent.length);
         const imageItem = messageContent.find(item => item.type === 'image_url');
         if (imageItem && imageItem.image_url && imageItem.image_url.url) {
+          console.log('從數組中提取到URL:', imageItem.image_url.url);
           return imageItem.image_url.url;
+        } else {
+          console.error('無法從數組中提取URL');
         }
+      } else {
+        console.error('未知的消息內容格式');
       }
+    } else {
+      console.error('響應不包含有效的選項');
     }
 
     // 如果無法從標準格式中獲取 URL，嘗試從整個響應中查找
     const responseStr = JSON.stringify(response.data);
+    console.log('嘗試從完整響應中查找URL');
     const urlMatch = responseStr.match(/"url":"(https?:\/\/[^"]+)"/);
     if (urlMatch && urlMatch.length > 1) {
+      console.log('從完整響應中提取到URL:', urlMatch[1]);
       return urlMatch[1];
+    } else {
+      console.error('無法從完整響應中提取URL');
     }
 
     // 如果仍然找不到 URL，則拋出錯誤
     throw new Error('無法從 API 響應中提取圖像 URL');
   } catch (error) {
-    console.error('Error generating image with OpenAI:', error);
+    console.error('生成圖像時出錯:', error.message);
     if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', JSON.stringify(error.response.data));
+      console.error('響應狀態碼:', error.response.status);
+      console.error('響應數據:', JSON.stringify(error.response.data));
+    } else if (error.request) {
+      console.error('未收到響應，請求詳情:', error.request);
+    } else {
+      console.error('錯誤詳情:', error);
     }
-    throw error;
+    throw new Error(`生成圖像失敗: ${error.message}`);
   }
 };
 

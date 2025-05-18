@@ -11,6 +11,7 @@ import StoryGeneratorPage from './components/StoryGeneratorPage';
 import CharacterGeneratorPage from './components/CharacterGeneratorPage';
 import CharacterGalleryPage from './components/CharacterGalleryPage';
 import DeluxeCharacterGeneratorPage from './components/DeluxeCharacterGeneratorPage';
+import MultiImageGeneratorPage from './components/MultiImageGeneratorPage';
 import DebugConsole from './components/DebugConsole';
 import { generateImageWithOpenAI, saveCase, savePromptTemplate, getCases, getPromptTemplates, ensureTablesExist } from './services/api';
 
@@ -62,7 +63,7 @@ function App() {
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [showStoryGenerator, setShowStoryGenerator] = useState(false);
     const [chatPrompt, setChatPrompt] = useState(''); // 用於傳遞給聊天界面的提示詞
-    const [currentPage, setCurrentPage] = useState('main'); // 'main', 'story-generator', 'character-generator', 'character-gallery', 'sticker-generator', or 'deluxe-sticker-generator'
+    const [currentPage, setCurrentPage] = useState('main'); // 'main', 'story-generator', 'character-generator', 'character-gallery', 'deluxe-character-generator', or 'multi-image-generator'
 
     // 調試信息
     console.log('App 狀態初始化完成', {
@@ -284,6 +285,13 @@ function App() {
       );
     }
 
+    // 如果當前頁面是多圖同時生成頁面
+    if (currentPage === 'multi-image-generator') {
+      return (
+        <MultiImageGeneratorPage onBack={() => setCurrentPage('main')} />
+      );
+    }
+
     // 表情貼圖生成頁面已移除
 
     // 主頁面
@@ -355,6 +363,22 @@ function App() {
               }}
             >
               豪華角色貼圖
+            </button>
+            <button
+              onClick={() => setCurrentPage('multi-image-generator')}
+              style={{
+                padding: '10px 15px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                backgroundColor: '#0c2461',
+                color: 'white',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                border: '2px solid #9c27b0',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              多圖同時生成
             </button>
             {/* 表情貼圖生成按鈕已移除 */}
             <button className="status-button" onClick={() => setShowStatusModal(true)}>

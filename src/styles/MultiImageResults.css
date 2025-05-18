@@ -1,0 +1,225 @@
+.multi-image-results {
+  margin-top: 1.5rem;
+}
+
+.no-results {
+  text-align: center;
+  padding: 2.5rem 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  background: rgba(10, 25, 41, 0.3);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.results-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.results-count {
+  font-size: 1rem;
+  color: var(--text-primary);
+  background: rgba(16, 42, 67, 0.5);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.download-all-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  color: white;
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.download-all-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.7s ease;
+}
+
+.download-all-button:hover {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.download-all-button:hover::before {
+  left: 100%;
+}
+
+.download-all-button:disabled {
+  background: #4a5568;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.results-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.result-item {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(16, 42, 67, 0.7);
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.result-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  opacity: 0.7;
+}
+
+.result-number {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--primary-color);
+  color: white;
+  font-weight: bold;
+  padding: 0.3rem 0.6rem;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.image-comparison {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  background: rgba(10, 25, 41, 0.3);
+}
+
+.original-image, .generated-image {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.original-image img, .generated-image img {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.original-image img:hover, .generated-image img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+.arrow {
+  margin: 0 1.5rem;
+  font-size: 1.5rem;
+  color: var(--accent-color);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+.image-label {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.download-button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: white;
+  background-color: #3f51b5;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-button:hover {
+  background-color: #303f9f;
+}
+
+.result-info {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+}
+
+.image-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.theme-name {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.generation-time {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.generation-time span {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.prompt-used {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.prompt-used span {
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.prompt-used p {
+  margin-top: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(10, 25, 41, 0.3);
+  border-radius: 6px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  border-left: 2px solid var(--primary-color);
+  color: var(--text-primary);
+}

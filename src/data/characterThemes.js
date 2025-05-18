@@ -15,6 +15,13 @@ const characterThemes = [
     backgroundPrompt: '西雅圖特色街區與自然公園的活力與寧靜。底色選用陽光黃色和綠色草地色塊搭配，小插圖風格隨筆潦草卻溫馨有趣，展現一天的隨性漫遊。',
   },
   {
+    id: 'animal-style',
+    name: '動物森友會風格',
+    description: '動物森友會風格，將照片融入動物森友會風格的畫面中',
+    promptTemplate: 'Please help me convert this photo into an illustration that looks like it was taken in the art style of the Nintendo Switch game Animal Crossing: New Horizons.，並把人物照片自然融入畫面中，讓整體具有分享價值與視覺吸引力。 ',
+    backgroundPrompt: '生成一張動物森友會風格的畫面',
+  },
+  {
     id: 'pixar',
     name: '皮克斯工作室風格',
     description: '3D動畫風格，皮克斯特有的卡通人物設計',
